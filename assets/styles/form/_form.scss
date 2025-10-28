@@ -1,0 +1,241 @@
+#form{
+  width:-webkit-fill-available;
+  border-radius: 30px;
+  padding: 60px 0;
+  border-radius: 40px;
+  background: $bg;
+  > div{
+    width:-webkit-fill-available;
+    margin:0 auto 40px auto;
+    position: relative;
+    max-width:710px;
+    &:has(.any), &:has(input[type="radio"]), &:has(input[type="checkbox"]){
+      &:not(:has(.any)){
+        display:table;
+        > div{
+          display:grid;
+          grid-template-columns: 28px auto;
+          grid-column-gap: 8px;
+          align-items: center;
+          &:not(:last-child){
+            margin-bottom: 20px;
+          }
+        }
+      }
+      text-align: left;
+      display:grid;
+      background: none;
+      border: none;
+      grid-template-columns: 28px auto;
+      grid-column-gap: 8px;
+      align-items: center;
+      border:0;
+      label{
+        grid-column: 2;
+        grid-row:1;
+        @include textFont(16px,28px,300);
+        a{
+          strong{
+            //color:$red;
+          }
+        }
+      }
+      input{
+        appearance: none;
+        width:28px;
+        height:28px;
+        border:1px solid #fff;
+        grid-column: 1;
+        grid-row:1;
+        position: relative;
+        background:transparent;
+      }
+      input[type="checkbox"]{
+        &:checked{
+          border:1px solid $lightBlue;
+          //background: $or;
+          &:after{
+            content: "✔";
+            color: #fff;
+            font-size: 16px;
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width:28px;
+            height:28px;
+            text-align: center;
+            grid-row: 1;
+            grid-column: 1;
+            background: $lightBlue;
+          }
+        }
+      }
+      input[type="radio"]{
+        border-radius: 20px;
+        &:checked{
+          &:after{
+            content: "";
+            background: $lightBlue;
+            left:50%;
+            top:50%;
+            transform: translate(-50%,-50%);
+            position: absolute;
+            width:13px;
+            height:13px;
+            display:table;
+            border-radius: 16px;
+          }
+        }
+      }
+    }
+    &:has(.justText){
+      text-align: cenbter;
+      @include simpleFont(30px,38px,400);
+      margin:0 auto 40px auto;
+      border:0 !important;
+      background: transparent !important;
+      input{
+        display:none !important;
+        pointer-events: none !important;
+      }
+      label{
+        font-size:30px !important;
+        font-weight: 400 !important;
+        position: relative !important;
+        top:0 !important;
+        left:0 !important;
+        line-height: 38px !important;
+        transform: initial !important;
+        margin-top:0px !important;
+        display:table !important;
+        margin:0 auto !important;
+        text-align: center;
+      }
+    }
+    &:has(input[type="text"]), &:has(input[type="email"]), &:has(input[type="date"]), &:has(input[type="file"]), &:has(input[type="password"]) {
+      > label {
+        @include simpleFont(13px,8px,700);
+        opacity: 0;
+        position: absolute;
+        left:20px;
+        top:7px;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        transform: translate(0,-10px);
+      }
+      &:not(:has(input:placeholder-shown)){
+        > label{
+          opacity: 1;
+          transform: translate(0,0);
+        }
+      }
+      input {
+        width:-webkit-fill-available;
+        height:68px;
+        padding-left:20px;
+        text-indent: 0;
+        border:1px solid #fff;
+        border-radius: 50px;
+        background: transparent;
+        @include simpleFont(16px,28px,300);
+        &::placeholder{
+          @include simpleFont(16px,28px,300);
+          color:#fff;
+        }
+      }
+    }
+    &:has(select){
+      select{
+        width:-webkit-fill-available;
+        height:68px;
+        padding-left:20px;
+        text-indent: 0;
+        border:0;
+        background: transparent;
+        @include simpleFont(16px,28px,300);
+        option{
+          @include simpleFont(16px,28px,300);
+        }
+      }
+    }
+    &:has(textarea){
+      textarea{
+        height:184px;
+        padding:20px;
+        text-indent: 0;
+        width: -webkit-fill-available;
+        border: 1px solid #fff;
+        resize: none;
+        border-radius: 40px;
+        background: transparent;
+        @include simpleFont(16px,28px,300);
+        &::placeholder{
+          @include simpleFont(16px,28px,300);
+          color:#fff;
+        }
+      }
+      label {
+        @include simpleFont(13px,8px,700);
+        opacity: 0;
+        position: absolute;
+        left:20px;
+        top:12px;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        transform: translate(0,-10px);
+      }
+      &:not(:has(textarea:placeholder-shown)){
+        label{
+          opacity: 1;
+          transform: translate(0,0);
+        }
+      }
+    }
+    &:has(input[type="date"]){
+
+    }
+    &:has(input[type="file"]){
+      > label {
+        display:none;
+      }
+      div{
+        input{
+          grid-column-start: 1;
+          grid-column-end: 3;
+          opacity: 0;
+          z-index: 10;
+          position: relative;
+          cursor: pointer;
+        }
+        position: relative;
+        display:grid;
+        grid-template-columns: 1fr 20px;
+        align-items: center;
+        *{
+          grid-row:1;
+        }
+        svg{
+          grid-column: 2;
+        }
+        label{
+          grid-column: 1;
+          margin-left: 20px;
+          @include simpleFont(16px,28px,300);
+        }
+      }
+    }
+    &:has(input[type="radio"]), &:has(input[type="checkbox"]){
+
+    }
+    &:has(button){
+      border:0;
+      background: none;
+      margin:0 auto !important;
+      button{
+        @include borderedButton($red,$red);
+        background: $red;
+        border:0;
+        padding:0 20px;
+        border-radius: 50px;
+      }
+    }
+  }
+}

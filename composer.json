@@ -1,0 +1,29 @@
+{
+    "name": "heyhodesigns/form",
+    "description": "symfony form bundle by heyhodesigns",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Heyhodesigns\\Form\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "heyhodesigns",
+            "email": "heyho1337@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "symfony/framework-bundle": "^7.0"
+    },
+    "extra": {
+        "symfony": {
+            "endpoint": [
+                "flex://defaults",
+                "https://raw.githubusercontent.com/heyho1337/form-recipe/main/index.json"
+            ]
+        }
+    }
+}
