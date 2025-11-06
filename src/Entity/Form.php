@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\FormRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FormRepository::class)]
@@ -15,16 +16,14 @@ class Form
     #[ORM\Column]
     private ?int $id = null;
 
+    private static string $currentLang = 'en';
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $name = null;
 
-    private ?string $subject = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $subject_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $subject_en = null;
+    // JSON translation storage
+    #[ORM\Column(type: Types::JSON)]
+    private array $subject = [];
 
     #[ORM\Column(length: 255)]
     private ?string $email = null;
@@ -59,6 +58,7 @@ class Form
     public function __construct()
     {
         $this->children = new ArrayCollection();
+        $this->subject = [];
     }
 
     public function getId(): ?int
@@ -74,43 +74,32 @@ class Form
     public function setName(?string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
-    public function getSubject(): ?string
+    // Smart getters/setters
+    public function getSubject(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->subject[$lang] ?? $this->subject['en'] ?? null;
+    }
+
+    public function setSubject(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->subject[$lang] = $value;
+        return $this;
+    }
+
+    // Methods to get/set all translations
+    public function getSubjectTranslations(): array
     {
         return $this->subject;
     }
 
-    public function setSubject(?string $subject): static
+    public function setSubjectTranslations(array $subject): static
     {
         $this->subject = $subject;
-
-        return $this;
-    }
-
-    public function getSubjectHu(): ?string
-    {
-        return $this->subject_hu;
-    }
-
-    public function setSubjectHu(?string $subject_hu): static
-    {
-        $this->subject_hu = $subject_hu;
-
-        return $this;
-    }
-
-    public function getSubjectEn(): ?string
-    {
-        return $this->subject_en;
-    }
-
-    public function setSubjectEn(?string $subject_en): static
-    {
-        $this->subject_en = $subject_en;
-
         return $this;
     }
 
@@ -122,7 +111,6 @@ class Form
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -134,7 +122,6 @@ class Form
     public function setRedirrect(?Menu $redirrect): static
     {
         $this->redirrect = $redirrect;
-
         return $this;
     }
 
@@ -146,7 +133,6 @@ class Form
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
-
         return $this;
     }
 
@@ -158,7 +144,6 @@ class Form
     public function setModifiedAt(\DateTimeImmutable $modified_at): static
     {
         $this->modified_at = $modified_at;
-
         return $this;
     }
 
@@ -170,7 +155,6 @@ class Form
     public function setActive(bool $active): static
     {
         $this->active = $active;
-
         return $this;
     }
 
@@ -188,19 +172,16 @@ class Form
             $this->children->add($child);
             $child->setParent($this);
         }
-
         return $this;
     }
 
     public function removeChild(FormInput $child): static
     {
         if ($this->children->removeElement($child)) {
-            // set the owning side to null (unless already changed)
             if ($child->getParent() === $this) {
                 $child->setParent(null);
             }
         }
-
         return $this;
     }
 
@@ -212,7 +193,6 @@ class Form
     public function setCaptcha(bool $captcha): static
     {
         $this->captcha = $captcha;
-
         return $this;
     }
 
@@ -224,7 +204,6 @@ class Form
     public function setAszf(bool $aszf): static
     {
         $this->aszf = $aszf;
-
         return $this;
     }
 
@@ -236,7 +215,16 @@ class Form
     public function setAny(bool $any): static
     {
         $this->any = $any;
-
         return $this;
+    }
+
+    public static function setCurrentLang(string $lang): void
+    {
+        self::$currentLang = $lang;
+    }
+
+    public static function getCurrentLang(): string
+    {
+        return self::$currentLang;
     }
 }

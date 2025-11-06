@@ -14,23 +14,20 @@ class FormInput
     #[ORM\Column]
     private ?int $id = null;
 
-    private ?string $name = null;
+    private static string $currentLang = 'en';
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name_hu = null;
+    // JSON translation storage
+    #[ORM\Column(type: Types::JSON)]
+    private array $name = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name_en = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $label = [];
 
-    private ?string $label = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $default_value = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $label_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $label_en = null;
-
-    private ?string $default_value = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $options = [];
 
     #[ORM\Column]
     private ?bool $mapped = null;
@@ -41,23 +38,9 @@ class FormInput
     #[ORM\Column]
     private ?bool $required = null;
 
-    private ?array $options = null;
-
     #[ORM\ManyToOne(inversedBy: 'children')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Form $parent = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $default_value_hu = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $default_value_en = null;
-
-    #[ORM\Column(type: Types::ARRAY, nullable: true)]
-    private ?array $options_hu = null;
-
-    #[ORM\Column(type: Types::ARRAY, nullable: true)]
-    private ?array $options_en = null;
 
     #[ORM\Column]
     private ?int $order_num = null;
@@ -71,92 +54,114 @@ class FormInput
     #[ORM\ManyToOne]
     private ?FormType $type = null;
 
+    public function __construct()
+    {
+        $this->name = [];
+        $this->label = [];
+        $this->default_value = [];
+        $this->options = [];
+    }
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    // Smart getters/setters
+    public function getName(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->name[$lang] ?? $this->name['en'] ?? null;
+    }
+
+    public function setName(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->name[$lang] = $value;
+        return $this;
+    }
+
+    public function getLabel(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->label[$lang] ?? $this->label['en'] ?? null;
+    }
+
+    public function setLabel(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->label[$lang] = $value;
+        return $this;
+    }
+
+    public function getDefaultValue(?string $lang = null): ?string
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->default_value[$lang] ?? $this->default_value['en'] ?? null;
+    }
+
+    public function setDefaultValue(?string $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->default_value[$lang] = $value;
+        return $this;
+    }
+
+    public function getOptions(?string $lang = null): ?array
+    {
+        $lang = $lang ?? self::$currentLang;
+        return $this->options[$lang] ?? $this->options['en'] ?? null;
+    }
+
+    public function setOptions(?array $value, ?string $lang = null): static
+    {
+        $lang = $lang ?? self::$currentLang;
+        $this->options[$lang] = $value;
+        return $this;
+    }
+
+    // Methods to get/set all translations
+    public function getNameTranslations(): array
     {
         return $this->name;
     }
 
-    public function setName(?string $name): static
+    public function setNameTranslations(array $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
-    public function getNameHu(): ?string
-    {
-        return $this->name_hu;
-    }
-
-    public function setNameHu(?string $name_hu): static
-    {
-        $this->name_hu = $name_hu;
-
-        return $this;
-    }
-
-    public function getNameEn(): ?string
-    {
-        return $this->name_en;
-    }
-
-    public function setNameEn(?string $name_en): static
-    {
-        $this->name_en = $name_en;
-
-        return $this;
-    }
-
-    public function getLabel(): ?string
+    public function getLabelTranslations(): array
     {
         return $this->label;
     }
 
-    public function setLabel(?string $label): static
+    public function setLabelTranslations(array $label): static
     {
         $this->label = $label;
-
         return $this;
     }
 
-    public function getLabelHu(): ?string
-    {
-        return $this->label_hu;
-    }
-
-    public function setLabelHu(?string $label_hu): static
-    {
-        $this->label_hu = $label_hu;
-
-        return $this;
-    }
-
-    public function getLabelEn(): ?string
-    {
-        return $this->label_en;
-    }
-
-    public function setLabelEn(?string $label_en): static
-    {
-        $this->label_en = $label_en;
-
-        return $this;
-    }
-
-    public function getDefaultValue(): ?string
+    public function getDefaultValueTranslations(): array
     {
         return $this->default_value;
     }
 
-    public function setDefaultValue(?string $default_value): static
+    public function setDefaultValueTranslations(array $default_value): static
     {
         $this->default_value = $default_value;
+        return $this;
+    }
 
+    public function getOptionsTranslations(): array
+    {
+        return $this->options;
+    }
+
+    public function setOptionsTranslations(array $options): static
+    {
+        $this->options = $options;
         return $this;
     }
 
@@ -168,7 +173,6 @@ class FormInput
     public function setMapped(bool $mapped): static
     {
         $this->mapped = $mapped;
-
         return $this;
     }
 
@@ -180,7 +184,6 @@ class FormInput
     public function setActive(bool $active): static
     {
         $this->active = $active;
-
         return $this;
     }
 
@@ -192,19 +195,6 @@ class FormInput
     public function setRequired(bool $required): static
     {
         $this->required = $required;
-
-        return $this;
-    }
-
-    public function getOptions(): ?array
-    {
-        return $this->options;
-    }
-
-    public function setOptions(?array $options): static
-    {
-        $this->options = $options;
-
         return $this;
     }
 
@@ -216,55 +206,6 @@ class FormInput
     public function setParent(?Form $parent): static
     {
         $this->parent = $parent;
-
-        return $this;
-    }
-
-    public function getDefaultValueHu(): ?string
-    {
-        return $this->default_value_hu;
-    }
-
-    public function setDefaultValueHu(?string $default_value_hu): static
-    {
-        $this->default_value_hu = $default_value_hu;
-
-        return $this;
-    }
-
-    public function getDefaultValueEn(): ?string
-    {
-        return $this->default_value_en;
-    }
-
-    public function setDefaultValueEn(?string $default_value_en): static
-    {
-        $this->default_value_en = $default_value_en;
-
-        return $this;
-    }
-
-    public function getOptionsHu(): ?array
-    {
-        return $this->options_hu;
-    }
-
-    public function setOptionsHu(?array $options_hu): static
-    {
-        $this->options_hu = $options_hu;
-
-        return $this;
-    }
-
-    public function getOptionsEn(): ?array
-    {
-        return $this->options_en;
-    }
-
-    public function setOptionsEn(?array $options_en): static
-    {
-        $this->options_en = $options_en;
-
         return $this;
     }
 
@@ -276,7 +217,6 @@ class FormInput
     public function setOrderNum(int $order_num): static
     {
         $this->order_num = $order_num;
-
         return $this;
     }
 
@@ -288,7 +228,6 @@ class FormInput
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
-
         return $this;
     }
 
@@ -300,13 +239,7 @@ class FormInput
     public function setModifiedAt(\DateTimeImmutable $modified_at): static
     {
         $this->modified_at = $modified_at;
-
         return $this;
-    }
-
-    public function __toString(): string
-    {
-        return $this->getName() ?? '';
     }
 
     public function getType(): ?FormType
@@ -317,7 +250,21 @@ class FormInput
     public function setType(?FormType $type): static
     {
         $this->type = $type;
-
         return $this;
+    }
+
+    public static function setCurrentLang(string $lang): void
+    {
+        self::$currentLang = $lang;
+    }
+
+    public static function getCurrentLang(): string
+    {
+        return self::$currentLang;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getName() ?? '';
     }
 }

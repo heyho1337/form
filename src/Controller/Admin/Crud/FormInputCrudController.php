@@ -34,7 +34,6 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 
 class FormInputCrudController extends AbstractCrudController
 {
-
     use ModalCrud;
     private string $lang;
 
@@ -84,61 +83,120 @@ class FormInputCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-
-        $request = $this->requestStack->getCurrentRequest();
-        $type = $request->query->get("type");
+        //$request = $this->requestStack->getCurrentRequest();
+        //$type = $request->query->get("type");
+        $entity = $this->getContext()?->getEntity()?->getInstance();
+        if ($entity instanceof FormInput && $entity->getType()) {
+            $type = $entity->getType()->getId();
+        }
         $this->getContext()->getRequest()->setLocale($this->lang);
         $this->translator->getCatalogue($this->lang);
         $this->translator->setLocale($this->lang);
+        
         /**
          * on forms
          */
         yield FormField::addTab(
-            $this->translateService->translateSzavak("form_input","Form Input")." ".
-            $this->translateService->translateSzavak("options"),propertySuffix: 'forminput1');
-            yield BooleanField::new('active',$this->translateService->translateSzavak("active"))
+            $this->translateService->translateWords("form_input","Form Input")." ".
+            $this->translateService->translateWords("options"),propertySuffix: 'forminput1');
+            yield BooleanField::new('active',$this->translateService->translateWords("active"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
             if ($this->security->isGranted('ROLE_SUPER_ADMIN')) { 
-                yield BooleanField::new('mapped',$this->translateService->translateSzavak("mapped"))
+                yield BooleanField::new('mapped',$this->translateService->translateWords("mapped"))
                     ->renderAsSwitch(true)
                     ->setFormTypeOptions(['data' => false])
                     ->onlyOnForms();
             }
-            yield BooleanField::new('required',$this->translateService->translateSzavak("required"))
+            yield BooleanField::new('required',$this->translateService->translateWords("required"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
-            
         
+        // ✅ Default language tab - use custom getter/setter
         yield FormField::addTab(
-                $this->translateService->translateSzavak("form_input","Form Input")." ".
-                $this->translateService->translateSzavak($this->langService->getDefaultObject()->getName()),propertySuffix: 'forminput2');
-            yield TextField::new('name_'.$this->langService->getDefault(), $this->translateService->translateSzavak("name"))
+            $this->translateService->translateWords("form_input","Form Input")." ".
+            $this->translateService->translateWords($this->langService->getDefaultObject()->getName()),propertySuffix: 'forminput2');
+            yield TextField::new('name', $this->translateService->translateWords("name"))
+                ->setFormTypeOption('getter', function(FormInput $entity) {
+                    return $entity->getName($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(FormInput &$entity, $value) {
+                    $entity->setName($value, $this->langService->getDefault());
+                })
                 ->hideOnIndex();
-            yield TextField::new('label_'.$this->langService->getDefault(), $this->translateService->translateSzavak("label"))
+            yield TextField::new('label', $this->translateService->translateWords("label"))
+                ->setFormTypeOption('getter', function(FormInput $entity) {
+                    return $entity->getLabel($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(FormInput &$entity, $value) {
+                    $entity->setLabel($value, $this->langService->getDefault());
+                })
                 ->hideOnIndex();
-            yield TextField::new('default_value_'.$this->langService->getDefault(), $this->translateService->translateSzavak("default_value", "Default value"))
+            yield TextField::new('default_value', $this->translateService->translateWords("default_value", "Default value"))
+                ->setFormTypeOption('getter', function(FormInput $entity) {
+                    return $entity->getDefaultValue($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(FormInput &$entity, $value) {
+                    $entity->setDefaultValue($value, $this->langService->getDefault());
+                })
                 ->hideOnIndex();
             if (in_array($type, [2, 7, 8])) {
-                yield ArrayField::new('options_'.$this->langService->getDefault(), $this->translateService->translateSzavak("options"))
+                yield ArrayField::new('options', $this->translateService->translateWords("options"))
+                    ->setFormTypeOption('getter', function(FormInput $entity) {
+                        return $entity->getOptions($this->langService->getDefault());
+                    })
+                    ->setFormTypeOption('setter', function(FormInput &$entity, $value) {
+                        $entity->setOptions($value, $this->langService->getDefault());
+                    })
                     ->hideOnIndex();
             }
         
+        // ✅ Other language tabs - use custom getter/setter for each
         foreach($this->langService->getLangs() as $lang){
             if(!$lang->isDefault()){
+                $langCode = $lang->getCode();
+                
                 yield FormField::addTab(
-                    $this->translateService->translateSzavak("form_input","Form Input")." ".
-                    $this->translateService->translateSzavak($lang->getName()),propertySuffix: 'forminput3');
-                yield TextField::new('name_'.$lang->getCode(), $this->translateService->translateSzavak("name"))
+                    $this->translateService->translateWords("form_input","Form Input")." ".
+                    $this->translateService->translateWords($lang->getName()),propertySuffix: 'forminput3');
+                
+                yield TextField::new('name_' . $langCode, $this->translateService->translateWords("name"))
+                    ->setFormTypeOption('getter', function(FormInput $entity) use ($langCode) {
+                        return $entity->getName($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(FormInput &$entity, $value) use ($langCode) {
+                        $entity->setName($value, $langCode);
+                    })
                     ->hideOnIndex();
-                yield TextField::new('label_'.$lang->getCode(), $this->translateService->translateSzavak("label"))
+                
+                yield TextField::new('label_' . $langCode, $this->translateService->translateWords("label"))
+                    ->setFormTypeOption('getter', function(FormInput $entity) use ($langCode) {
+                        return $entity->getLabel($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(FormInput &$entity, $value) use ($langCode) {
+                        $entity->setLabel($value, $langCode);
+                    })
                     ->hideOnIndex();
-                yield TextField::new('default_value_'.$lang->getCode(), $this->translateService->translateSzavak("default_value", "Default value"))
+                
+                yield TextField::new('default_value_' . $langCode, $this->translateService->translateWords("default_value", "Default value"))
+                    ->setFormTypeOption('getter', function(FormInput $entity) use ($langCode) {
+                        return $entity->getDefaultValue($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(FormInput &$entity, $value) use ($langCode) {
+                        $entity->setDefaultValue($value, $langCode);
+                    })
                     ->hideOnIndex();
+                
                 if (in_array($type, [2, 7, 8])) {
-                    yield ArrayField::new('options_'.$lang->getCode(), $this->translateService->translateSzavak("options"))
+                    yield ArrayField::new('options_' . $langCode, $this->translateService->translateWords("options"))
+                        ->setFormTypeOption('getter', function(FormInput $entity) use ($langCode) {
+                            return $entity->getOptions($langCode);
+                        })
+                        ->setFormTypeOption('setter', function(FormInput &$entity, $value) use ($langCode) {
+                            $entity->setOptions($value, $langCode);
+                        })
                         ->hideOnIndex();
                 }
             }
@@ -147,21 +205,24 @@ class FormInputCrudController extends AbstractCrudController
         /**
          * index
          */
-        yield TextField::new('name', $this->translateService->translateSzavak("name"))
-            ->formatValue(function ($value, $entity) {
+        yield TextField::new('name', $this->translateService->translateWords("name"))
+            ->formatValue(function ($value, FormInput $entity) {
+                $default = $this->langService->getDefault();
+                $name = $entity->getName($default);
+                
                 $url = $this->adminUrlGenerator
                     ->setController(self::class)
                     ->setAction('edit')
                     ->setEntityId($entity->getId())
                     ->generateUrl();
 
-                return sprintf('<a href="%s">%s</a>', $url, htmlspecialchars($value));
+                return sprintf('<a href="%s">%s</a>', $url, htmlspecialchars($name));
             })
             ->onlyOnIndex()
             ->renderAsHtml();
-        yield DateField::new('created_at', $this->translateService->translateSzavak("created_at","created"))->hideOnForm();
-        yield DateField::new('modified_at',$this->translateService->translateSzavak("modified_at","modified"))->hideOnForm();
-        yield BooleanField::new('active', $this->translateService->translateSzavak("active"))
+        yield DateField::new('created_at', $this->translateService->translateWords("created_at","created"))->hideOnForm();
+        yield DateField::new('modified_at',$this->translateService->translateWords("modified_at","modified"))->hideOnForm();
+        yield BooleanField::new('active', $this->translateService->translateWords("active"))
             ->renderAsSwitch(true)
             ->onlyOnIndex();
     }
@@ -181,8 +242,6 @@ class FormInputCrudController extends AbstractCrudController
         $request = $this->requestStack->getCurrentRequest();
         $id = $request->query->get('parent');
         $type = $request->query->get("type");
-
-        //$entity = $this->entityManager->getRepository(\App\Entity\Form::class)->find($id);
 
         $url = $this->router->generate('admin_form_input_ajax_create', [
             'parent' => $id,
@@ -224,28 +283,37 @@ class FormInputCrudController extends AbstractCrudController
 
                 $formData = $request->request->all('FormInput');
             
+                // ✅ Process each language using the setter methods with language parameter
                 foreach ($this->langService->getLangs() as $lang) { 
                     $code = $lang->getCode();
-                    $optionsKey = 'options_' . $code;
                     
-                    // Check if options data exists in the request
+                    // Set name
+                    if (isset($formData['name_' . $code])) {
+                        $entity->setName($formData['name_' . $code], $code);
+                    }
+                    
+                    // Set label
+                    if (isset($formData['label_' . $code])) {
+                        $entity->setLabel($formData['label_' . $code], $code);
+                    }
+                    
+                    // Set default_value
+                    if (isset($formData['default_value_' . $code])) {
+                        $entity->setDefaultValue($formData['default_value_' . $code], $code);
+                    }
+                    
+                    // Set options
+                    $optionsKey = 'options_' . $code;
                     if (isset($formData[$optionsKey]) && is_array($formData[$optionsKey])) {
                         // Remove empty values and reindex array
                         $options = array_values(array_filter($formData[$optionsKey], function($value) {
                             return !empty(trim($value));
                         }));
                         
-                        // Set options using setter method
-                        $setter = 'setOptions' . ucfirst($code);
-                        if (method_exists($entity, $setter)) {
-                            $entity->$setter($options);
-                        }
+                        $entity->setOptions($options, $code);
                     } else {
                         // Set empty array if no options provided
-                        $setter = 'setOptions' . ucfirst($code);
-                        if (method_exists($entity, $setter)) {
-                            $entity->$setter([]);
-                        }
+                        $entity->setOptions([], $code);
                     }
                 }
 
@@ -257,7 +325,7 @@ class FormInputCrudController extends AbstractCrudController
                 $this->entityManager->persist($entity);
                 $this->entityManager->flush();
 
-                $this->addFlash('success', $this->translateService->translateSzavak("success_upload_form_type","Form type uploaded successfully"));
+                $this->addFlash('success', $this->translateService->translateWords("success_upload_form_type","Form type uploaded successfully"));
 
                 return new JsonResponse(['success' => true, 'id' => $entity->getId()]);
             }
@@ -272,7 +340,6 @@ class FormInputCrudController extends AbstractCrudController
             'request_data' => $request->request->all(), // POST data
         ], 400);
     }
-
 
     private function buildAccordionItemForm(FormInput $entity)
     {
@@ -290,17 +357,27 @@ class FormInputCrudController extends AbstractCrudController
 
         foreach ($this->langService->getLangs() as $lang) {
             $code = $lang->getCode();
+            
+            // ✅ Use getter/setter with property_path set to null to prevent automatic mapping
             $formBuilder->add('name_' . $code, TextType::class, [
                 'label' => 'Name ' . $lang->getName(),
                 'required' => false,
+                'mapped' => false,
+                'data' => $entity->getName($code) ?? '',
             ]);
+            
             $formBuilder->add('label_' . $code, TextType::class, [
                 'label' => 'Label ' . $lang->getName(),
                 'required' => false,
+                'mapped' => false,
+                'data' => $entity->getLabel($code) ?? '',
             ]);
+            
             $formBuilder->add('default_value_' . $code, TextType::class, [
                 'label' => 'Default value ' . $lang->getName(),
                 'required' => false,
+                'mapped' => false,
+                'data' => $entity->getDefaultValue($code) ?? '',
             ]);
 
             if($entity){
@@ -309,12 +386,14 @@ class FormInputCrudController extends AbstractCrudController
                     $id = $type->getId();
                     if($id){
                         if (in_array($id, [2, 7, 8])) {
-                             $formBuilder->add('options_' . $code, CollectionType::class, [
+                            $formBuilder->add('options_' . $code, CollectionType::class, [
                                 'label' => 'Options ' . $lang->getName(),
                                 'entry_type' => TextType::class,
                                 'allow_add' => true,
                                 'allow_delete' => true,
                                 'required' => false,
+                                'mapped' => false,
+                                'data' => $entity->getOptions($code) ?? [],
                                 'entry_options' => [
                                     'label' => false,
                                 ],
@@ -323,7 +402,6 @@ class FormInputCrudController extends AbstractCrudController
                     }
                 }
             }
-
         }
 
         return $formBuilder->getForm();

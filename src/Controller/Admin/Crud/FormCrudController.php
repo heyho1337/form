@@ -26,7 +26,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 
 class FormCrudController extends AbstractCrudController
 {
-
     private string $lang;
 
     public function __construct(
@@ -48,6 +47,7 @@ class FormCrudController extends AbstractCrudController
             }
         }
     }
+    
     public static function getEntityFqcn(): string
     {
         return Form::class;
@@ -72,50 +72,68 @@ class FormCrudController extends AbstractCrudController
         $this->getContext()->getRequest()->setLocale($this->lang);
         $this->translator->getCatalogue($this->lang);
         $this->translator->setLocale($this->lang);
+        
         /**
          * on forms
          */
-        yield FormField::addTab($this->translateService->translateSzavak("options"),propertySuffix: 'form');
-            yield BooleanField::new('active',$this->translateService->translateSzavak("active"))
+        yield FormField::addTab($this->translateService->translateWords("options"),propertySuffix: 'form');
+            yield BooleanField::new('active',$this->translateService->translateWords("active"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
-            yield BooleanField::new('captcha',$this->translateService->translateSzavak("captcha"))
+            yield BooleanField::new('captcha',$this->translateService->translateWords("captcha"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
-            yield BooleanField::new('any',$this->translateService->translateSzavak("any","Privacy Policy"))
+            yield BooleanField::new('any',$this->translateService->translateWords("any","Privacy Policy"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
-            yield BooleanField::new('aszf',$this->translateService->translateSzavak("aszf","General Terms and Conditions"))
+            yield BooleanField::new('aszf',$this->translateService->translateWords("aszf","General Terms and Conditions"))
                 ->renderAsSwitch(true)
                 ->setFormTypeOptions(['data' => true])
                 ->onlyOnForms();
-            yield TextField::new('name', $this->translateService->translateSzavak("name"))
+            yield TextField::new('name', $this->translateService->translateWords("name"))
                 ->hideOnIndex();
-            yield TextField::new('email', $this->translateService->translateSzavak("email"))
+            yield TextField::new('email', $this->translateService->translateWords("email"))
                 ->hideOnIndex();
-            yield AssociationField::new('redirrect', $this->translateService->translateSzavak("redirrect", "Thank You page"))
+            yield AssociationField::new('redirrect', $this->translateService->translateWords("redirrect", "Thank You page"))
                 ->setRequired(false)
                 ->autocomplete()
                 ->hideOnIndex();
         
-        yield FormField::addTab($this->translateService->translateSzavak($this->langService->getDefaultObject()->getName()),propertySuffix: 'form1');
-            yield TextField::new('subject_'.$this->langService->getDefault(), $this->translateService->translateSzavak("subject"))
+        // ✅ Default language tab - use custom getter/setter
+        yield FormField::addTab($this->translateService->translateWords($this->langService->getDefaultObject()->getName()),propertySuffix: 'form1');
+            yield TextField::new('subject', $this->translateService->translateWords("subject"))
+                ->setFormTypeOption('getter', function(Form $entity) {
+                    return $entity->getSubject($this->langService->getDefault());
+                })
+                ->setFormTypeOption('setter', function(Form &$entity, $value) {
+                    $entity->setSubject($value, $this->langService->getDefault());
+                })
                 ->hideOnIndex();
         
+        // ✅ Other language tabs - use custom getter/setter for each
         foreach($this->langService->getLangs() as $lang){
             if(!$lang->isDefault()){
-                yield FormField::addTab($this->translateService->translateSzavak($lang->getName()),propertySuffix: 'form2');
-                yield TextField::new('subject_'.$lang->getCode(), $this->translateService->translateSzavak("subject"))
+                $langCode = $lang->getCode();
+                
+                yield FormField::addTab($this->translateService->translateWords($lang->getName()),propertySuffix: 'form2');
+                
+                yield TextField::new('subject_' . $langCode, $this->translateService->translateWords("subject"))
+                    ->setFormTypeOption('getter', function(Form $entity) use ($langCode) {
+                        return $entity->getSubject($langCode);
+                    })
+                    ->setFormTypeOption('setter', function(Form &$entity, $value) use ($langCode) {
+                        $entity->setSubject($value, $langCode);
+                    })
                     ->hideOnIndex();
             }
         }
 
         if ($pageName === Crud::PAGE_EDIT) {
-            yield FormField::addTab($this->translateService->translateSzavak("form_input","Form input"),propertySuffix: 'form3');
-                yield AssociationField::new('children', $this->translateService->translateSzavak("form_input","Form input"))
+            yield FormField::addTab($this->translateService->translateWords("form_input","Form input"),propertySuffix: 'form3');
+                yield AssociationField::new('children', $this->translateService->translateWords("form_input","Form input"))
                     ->setRequired(false)
                     ->hideOnIndex();
         }
@@ -123,7 +141,7 @@ class FormCrudController extends AbstractCrudController
         /**
          * index
          */
-        yield TextField::new('name', $this->translateService->translateSzavak("name"))
+        yield TextField::new('name', $this->translateService->translateWords("name"))
             ->formatValue(function ($value, $entity) {
                 $url = $this->adminUrlGenerator
                     ->setController(self::class)
@@ -135,9 +153,9 @@ class FormCrudController extends AbstractCrudController
             })
             ->onlyOnIndex()
             ->renderAsHtml();
-        yield DateField::new('created_at', $this->translateService->translateSzavak("created_at","created"))->hideOnForm();
-        yield DateField::new('modified_at',$this->translateService->translateSzavak("modified_at","modified"))->hideOnForm();
-        yield BooleanField::new('active', $this->translateService->translateSzavak("active"))
+        yield DateField::new('created_at', $this->translateService->translateWords("created_at","created"))->hideOnForm();
+        yield DateField::new('modified_at',$this->translateService->translateWords("modified_at","modified"))->hideOnForm();
+        yield BooleanField::new('active', $this->translateService->translateWords("active"))
             ->renderAsSwitch(true)
             ->onlyOnIndex();
     }
